@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Tests (Python 3.11, macOS)
+    runs-on: macos-latest
+    # La suite tarda ~26 min en el runner de macOS (2026-10-26). Tope para que un test colgado no consuma horas
+    # de minutos de macOS (en repos privados cuentan x10).
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements-dev.txt
+      # Sin SQX instalado: los tests usan un motor simulado (mock de sqcli) y carpetas temporales.
+      - name: Tests
+        run: python -m pytest -q

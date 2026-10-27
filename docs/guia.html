@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía de sqx-headless</title>
+<style>
+  :root{
+    --ink:#1c2733; --muted:#5b6b7a; --accent:#1a5fa8; --accent2:#0e7a5f; --head:#123c66;
+    --warn:#9a5b00; --warn-bg:#fff6e6; --warn-line:#ecd9ae; --bad:#a02020; --bad-bg:#fdeeee; --bad-line:#eec3c3;
+    --ok-bg:#eef7f2; --ok-line:#bfe0cf; --code-bg:#f2f5f8; --line:#d8e0e8; --card:#fbfcfe; --th:#eef3f8;
+    --bg:#ffffff; --box-stroke:#9db3c8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#dfe6ee; --muted:#9aa9b8; --accent:#6aa8ec; --accent2:#3fb58f; --head:#9cc6f2;
+      --warn:#e0a640; --warn-bg:#2d2412; --warn-line:#5a4520; --bad:#ec7b7b; --bad-bg:#2e1717; --bad-line:#5c2a2a;
+      --ok-bg:#132a22; --ok-line:#285443; --code-bg:#1d242c; --line:#33404d; --card:#182029; --th:#1f2a36;
+      --bg:#11161c; --box-stroke:#4d6278;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#dfe6ee; --muted:#9aa9b8; --accent:#6aa8ec; --accent2:#3fb58f; --head:#9cc6f2;
+    --warn:#e0a640; --warn-bg:#2d2412; --warn-line:#5a4520; --bad:#ec7b7b; --bad-bg:#2e1717; --bad-line:#5c2a2a;
+    --ok-bg:#132a22; --ok-line:#285443; --code-bg:#1d242c; --line:#33404d; --card:#182029; --th:#1f2a36;
+    --bg:#11161c; --box-stroke:#4d6278;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+       color:var(--ink);line-height:1.62;margin:0;background:var(--bg)}
+  main{max-width:940px;margin:0 auto;padding:2.2rem 1rem 6rem}
+  h1{font-size:1.85rem;line-height:1.25;margin:0 0 .4rem}
+  h2{font-size:1.45rem;margin:3.2rem 0 .9rem;padding-top:1rem;border-top:3px solid var(--accent);color:var(--head)}
+  h3{font-size:1.13rem;margin:2rem 0 .6rem;color:var(--head)}
+  p{margin:.55rem 0}
+  ul,ol{margin:.4rem 0 .9rem;padding-left:1.5rem}
+  li{margin:.28rem 0}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.88em;
+       background:var(--code-bg);padding:.08em .35em;border-radius:4px;overflow-wrap:anywhere}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+      padding:.9rem 1.1rem;overflow-x:auto;font-size:.86rem;line-height:1.5}
+  pre code{background:none;padding:0;overflow-wrap:normal}
+  .table-wrap{overflow-x:auto;margin:1rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--th)}
+  .sub{color:var(--muted);font-size:.95rem}
+  .box{border-radius:8px;padding:.85rem 1.1rem;margin:1rem 0;border:1px solid var(--line)}
+  .box .tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;
+            text-transform:uppercase;border-radius:4px;padding:.1em .5em;margin-bottom:.4rem;color:var(--bg)}
+  .concepto{background:var(--ok-bg);border-color:var(--ok-line)}
+  .concepto .tag{background:var(--accent2)}
+  .caveat{background:var(--warn-bg);border-color:var(--warn-line)}
+  .caveat .tag{background:var(--warn)}
+  .corrige{background:var(--bad-bg);border-color:var(--bad-line)}
+  .corrige .tag{background:var(--bad)}
+  .fig{margin:1.4rem 0;text-align:center}
+  .fig img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px}
+  .fig svg{max-width:100%;height:auto}
+  .figcap{font-size:.85rem;color:var(--muted);margin-top:.35rem}
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.4rem;margin:1.6rem 0}
+  .toc ol{margin:.3rem 0;padding-left:1.4rem}
+  .toc a{color:var(--accent);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  a{color:var(--accent)}
+  .steps{counter-reset:paso;list-style:none;padding-left:0}
+  .steps>li{counter-increment:paso;position:relative;padding-left:2.3rem;margin:.9rem 0}
+  .steps>li::before{content:counter(paso);position:absolute;left:0;top:.05rem;width:1.6rem;height:1.6rem;
+            border-radius:50%;background:var(--accent);color:var(--bg);font-weight:700;font-size:.85rem;
+            display:flex;align-items:center;justify-content:center}
+  .footer{color:var(--muted);font-size:.82rem;margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem}
+  svg text{fill:var(--ink)}
+  svg .muted{fill:var(--muted)}
+  svg .node{fill:var(--card);stroke:var(--box-stroke);stroke-width:1.5}
+  svg .node-ok{fill:var(--ok-bg);stroke:var(--accent2);stroke-width:1.5}
+  svg .node-stop{fill:var(--bad-bg);stroke:var(--bad);stroke-width:1.5}
+  svg .arrow{stroke:var(--muted);stroke-width:1.5;fill:none}
+  svg .arrow-head{fill:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Guía de sqx-headless</h1>
+<p class="sub">Lanzar, vigilar y parar proyectos de StrategyQuant X sin abrir la GUI, en macOS.<br>
+Probado con SQX build 144 en Apple Silicon. Para los detalles de cada comando, el <code>README.md</code>;
+para las trampas conocidas, <code>AGENTS.md</code> y la carpeta <code>docs/</code>.</p>
+
+<div class="toc">
+<b>Contenido</b>
+<ol>
+  <li><a href="#que">Qué hace y cuándo te sirve</a></li>
+  <li><a href="#instalar">Instalar (una vez)</a></li>
+  <li><a href="#memoria">Ajustar la memoria (una vez)</a></li>
+  <li><a href="#monitor">Recorrido con el monitor</a></li>
+  <li><a href="#terminal">Lo mismo desde la terminal</a></li>
+  <li><a href="#dentro">Cómo funciona por dentro</a></li>
+  <li><a href="#reglas">Reglas que no hay que saltarse</a></li>
+  <li><a href="#problemas">Si algo va mal</a></li>
+  <li><a href="#ia">Usarlo con una IA</a></li>
+  <li><a href="#glosario">Glosario</a></li>
+</ol>
+</div>
+
+<h2 id="que">1. Qué hace y cuándo te sirve</h2>
+
+<p>Si lanzas desde la GUI un proyecto largo (un Build seguido de retests y filtros), SQX usa un único
+motor para todo y la memoria se va acumulando task tras task hasta que el Mac se queda sin RAM. Esta
+herramienta ejecuta el mismo proyecto <b>task a task, con un motor de SQX nuevo para cada una</b>, y sin
+ventana.</p>
+
+<ul>
+  <li><b>Pipelines largos sin quedarse sin memoria.</b> Cada task empieza con la memoria limpia.</li>
+  <li><b>Seguimiento desde el navegador.</b> Un monitor muestra el estado de cada task, los databanks,
+      la evolución del fitness y los motivos de rechazo.</li>
+  <li><b>Parar sin perder estrategias.</b> Los databanks se guardan a disco antes de cerrar el motor, y el
+      proyecto queda listo para abrirlo en la GUI.</li>
+</ul>
+
+<p>Lo que <b>no</b> hace: no crea ni configura proyectos (eso sigue siendo cosa de la GUI) y no funciona en
+Windows.</p>
+
+<div class="box concepto"><span class="tag">Idea clave</span>
+<p>SQX trae, dentro de la app, un <b>motor sin ventana</b> (<code>sqcli</code>) que se maneja por HTTP en
+el puerto 5050. Todo lo de este repo habla con ese motor: lo arranca, le dice qué task correr, le pide que
+guarde los databanks y lo cierra. Tu proyecto es el mismo que ves en la GUI; solo cambia quién lo ejecuta.</p>
+</div>
+
+<h2 id="instalar">2. Instalar (una vez)</h2>
+
+<p>Necesitas macOS, StrategyQuant X instalado en <code>/Applications</code> o <code>~/Applications</code> con la
+licencia activa, Python 3.11 (<code>brew install python@3.11</code> o el instalador de python.org), git (si no lo
+tienes, <code>xcode-select --install</code>) y acceso a este repo, que es privado: te lo da quien te lo pasó.</p>
+
+<pre><code>git clone https://github.com/sergiobe31/sqx-headless.git
+cd sqx-headless
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+mkdir -p sqx/output
+python sqx/paths.py        # comprueba que encuentra tu SQX</code></pre>
+
+<p><code>python sqx/paths.py</code> te dice qué instalación de SQX va a usar. Si tienes varias, elige una con
+<code>export SQX_APP=/Applications/StrategyQuantX&lt;versión&gt;.app</code> y ponlo en tu <code>~/.zshrc</code>.</p>
+
+<div class="box caveat"><span class="tag">Cada terminal nueva</span>
+<p>Activa el entorno con <code>source .venv/bin/activate</code>. Los scripts llaman a <code>python3</code> y
+tiene que ser el de <code>.venv</code>.</p>
+</div>
+
+<h2 id="memoria">3. Ajustar la memoria (una vez)</h2>
+
+<p>El motor carga en memoria <b>todos</b> los databanks del proyecto: unos 0,9 GB por cada 1.000 estrategias.
+De fábrica, SQX no le pone techo (<code>-Xmx</code>, la memoria máxima del motor) y el motor se queda con el 25 % de
+la RAM del Mac, poco para proyectos grandes. La configuración de referencia, para un Mac de 16 GB, es esta en
+<code>/Applications/StrategyQuantX….app/Contents/Resources/sqcli.config</code>:</p>
+
+<pre><code>option -Xms1g
+option -Xmx6g
+option -XX:+UseG1GC</code></pre>
+
+<p>Edítalo <b>con SQX cerrado y sin ninguna corrida en marcha</b>, guarda antes una copia
+(<code>cp sqcli.config sqcli.config.bak</code>) y repítelo cada vez que reinstales SQX.</p>
+
+<p>Mientras corre una task, un <b>vigilante de RAM</b> mide la memoria del motor: avisa a los 8 GB y lo para a
+los 9 GB, o si la RAM libre del Mac baja del 10 %. Si tienes más RAM y has subido el <code>-Xmx</code>, sube
+también esos umbrales con <code>WD_WARN_RSS_MB</code> y <code>WD_KILL_RSS_MB</code> en tu <code>~/.zshrc</code>. Como
+orientación, sin medir: umbral de parada ≈ <code>-Xmx</code> + 3 GB (con <code>-Xmx12g</code>, 14336 y 15360 MB). Tienen
+que estar puestas antes de lanzar: abre una terminal nueva y, si lanzas desde el monitor, reinícialo.</p>
+
+<div class="box corrige"><span class="tag">Ojo</span>
+<p>Cuando el vigilante para el motor <b>no guarda</b>: se pierde lo generado desde el último guardado
+automático. La task queda marcada como fallida por RAM y el pipeline te dice desde dónde reanudar.</p>
+</div>
+
+<h2 id="monitor">4. Recorrido con el monitor</h2>
+
+<p>La forma más cómoda de usarlo es el monitor, una página que se abre en el navegador. Antes de empezar:
+<b>GUI de SQX cerrada</b> y el Mac <b>enchufado y con la tapa abierta</b>.</p>
+
+<ol class="steps">
+<li>
+<p><b>Abre el monitor.</b> En la carpeta del repo, con el entorno activado:</p>
+<pre><code>caffeinate -i streamlit run sqx/sqx_monitor.py</code></pre>
+<p><code>caffeinate -i</code> impide que el Mac se duerma por inactividad mientras la terminal siga abierta. Déjala
+abierta mientras dure la corrida: lo que lances desde el monitor queda cubierto por ella.</p>
+</li>
+<li>
+<p><b>Elige el proyecto y pulsa Actualizar.</b> Arriba ves el estado (<b>IDLE</b> = parado), la configuración
+del proyecto (símbolo, timeframe, motor…) y qué construye cada Build task. La página no se refresca sola:
+pulsa <b>Actualizar</b> cuando quieras ver el estado nuevo.</p>
+<div class="fig"><img src="img/monitor_idle.png" alt="Monitor con el proyecto parado: estado IDLE, configuración del proyecto y, en la barra lateral, el bloque Ejecutar task">
+<div class="figcap">Proyecto parado. En la barra lateral, el bloque <i>Ejecutar task</i>.</div></div>
+</li>
+<li>
+<p><b>Lanza.</b> En <i>Ejecutar task</i> elige la task por la que empezar y el modo:</p>
+<ul>
+  <li><b>desde esta — pipeline, motor por task</b>: corre esa task y todas las siguientes, cada una con un
+      motor nuevo. Es lo normal para un proyecto entero.</li>
+  <li><b>sólo esta (no sigue)</b>: corre solo esa task.</li>
+</ul>
+<p>Para un proyecto entero, elige la primera task (índice 0) en modo <i>desde esta</i>. Pulsa <b>Ejecutar</b>.
+Al principio verás <b>EN PROCESO · motor en pausa</b>: el pipeline está vivo y el
+motor arrancando o cargando los databanks. Ese mismo estado aparece en la pausa de 1-4 minutos entre una
+task y la siguiente. Mientras un pipeline siga vivo, el monitor no deja lanzar otro.</p>
+<div class="fig"><img src="img/monitor_launch.png" alt="Monitor tras lanzar: estado EN PROCESO, motor en pausa, y aviso de que hay un orquestador vivo">
+<div class="figcap">Recién lanzado: el pipeline está vivo y el motor, arrancando.</div></div>
+</li>
+<li>
+<p><b>Vigila.</b> Con la task en marcha el estado pasa a <b>RUNNING</b> y aparece <i>Estado en vivo</i>:
+estrategias generadas, cuántas hay en el databank, porcentaje aceptado y rechazado, velocidad y tiempo
+de la task. Más abajo, la evolución del fitness y los motivos de rechazo.</p>
+<p>Si activas <b>Auto-muestrear cada 3 min</b>, el histórico se sigue guardando aunque cierres el monitor.</p>
+<div class="fig"><img src="img/monitor_running.png" alt="Monitor con un Build en marcha: estado RUNNING y métricas en vivo del motor">
+<div class="figcap">Build en marcha: generadas, en databank, aceptadas y rechazadas.</div></div>
+</li>
+<li>
+<p><b>Para cuando quieras con Stop &amp; persist.</b> Pide al motor que pare la task en curso, espera a que se
+guarden los databanks y cierra el motor; con un pipeline en marcha, además, no se lanza ninguna task más.
+El reporte te dice al final si ya es seguro abrir la GUI o por qué no.</p>
+<p>Para seguir otro día: el log del orquestador (<code>/tmp/&lt;proyecto&gt;_pertask_&lt;hora&gt;.log</code> si lanzaste
+desde el monitor) termina con <code>⏹ PARADA por el usuario en la task N … Reanuda: …</code>. Relanza desde esa task
+para repetirla, o desde la siguiente para darla por buena con lo que ya guardó. Qué pasa con las estrategias de
+una task repetida depende de cómo esté configurada en SQX, igual que en la GUI.</p>
+<div class="fig"><img src="img/monitor_stop.png" alt="Monitor tras pulsar Stop &amp; persist: pipeline parado, la task guardó y ya se puede abrir la GUI">
+<div class="figcap">Parada completada en unos 30 s: la task guardó, no se lanzó ninguna más y ya se puede abrir la GUI.</div></div>
+<p>El botón espera hasta 3 minutos. Si guardar tarda más (bancos de miles de estrategias), el reporte dice
+"parando": la parada sigue su curso y el pipeline se detiene al terminar de guardar. Pulsa
+<b>Actualizar</b> un rato después para verlo.</p>
+</li>
+<li>
+<p><b>Antes de abrir la GUI.</b> Si el reporte de Stop &amp; persist dice que es seguro, puedes abrirla. En
+cualquier otro momento (otro día, tras un fallo), compruébalo:</p>
+<pre><code>python sqx/persist_before_gui.py MiProyecto</code></pre>
+<p>Solo comprueba (no arranca nada): que no queden motor, GUI ni pipeline vivos, ni bancos apartados, ni un
+<code>.cfx</code> a medio restaurar. Sale con código 0 si es seguro, o 1 con los motivos.</p>
+</li>
+</ol>
+
+<h2 id="terminal">5. Lo mismo desde la terminal</h2>
+
+<p>Todo lo que hace el monitor tiene su comando. Son útiles para dejar algo lanzado por SSH o desde un script.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Para</th><th>Comando</th></tr>
+<tr><td>Ver las tasks y su índice (0, 1, 2…)</td><td><code>python sqx/run_task_headless.py MiProyecto --list</code></td></tr>
+<tr><td>Lanzar el pipeline entero</td><td><code>nohup caffeinate -i bash sqx/run_pipeline_per_task.sh MiProyecto &gt; sqx/output/MiProyecto_launch.log 2&gt;&amp;1 &amp;</code></td></tr>
+<tr><td>Lanzar desde la task 3, con menos RAM</td><td><code>nohup caffeinate -i bash sqx/run_pipeline_per_task.sh MiProyecto 3 --slim &gt; sqx/output/MiProyecto_launch.log 2&gt;&amp;1 &amp;</code></td></tr>
+<tr><td>Lanzar una sola task</td><td><code>python sqx/run_task_headless.py MiProyecto --task "Nombre" --mode only</code></td></tr>
+<tr><td>Varios proyectos seguidos</td><td><code>nohup caffeinate -i bash sqx/run_cascade_projects.sh 0 ProyectoA ProyectoB &gt; sqx/output/cascada_launch.log 2&gt;&amp;1 &amp;</code></td></tr>
+<tr><td>Parar y guardar</td><td><code>python sqx/stop_and_persist.py MiProyecto</code></td></tr>
+<tr><td>¿Puedo abrir la GUI?</td><td><code>python sqx/persist_before_gui.py MiProyecto</code></td></tr>
+</table></div>
+
+<ul>
+  <li><b><code>--slim</code></b> es para proyectos con databanks grandes: mientras corre cada task, aparta los
+      bancos que esa task no usa y al final los devuelve. No borra nada.</li>
+  <li>Si una task falla, el pipeline <b>se detiene y te dice el índice</b> desde el que reanudar (última línea
+      <code>ABORT … Reanuda: …</code> del log de lanzamiento). Vuelve a lanzar con ese índice.</li>
+  <li>Cada task tiene un tope de 12 horas y el driver comprueba el estado cada 15 minutos. Para tasks más
+      largas o retests cortos hay que ajustarlo: mira el <code>README.md</code>, apartado <i>Lanzar</i>.</li>
+</ul>
+
+<h2 id="dentro">6. Cómo funciona por dentro</h2>
+
+<div class="fig">
+<svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg" font-family="inherit" font-size="13" role="img"
+     aria-label="El orquestador lanza cada task con un motor nuevo; el driver de la task arranca el motor, guarda los databanks y lo cierra; Stop &amp; persist para la task en curso y el pipeline">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-head" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <rect class="node" x="10" y="20" width="160" height="62" rx="8"/>
+  <text x="90" y="46" text-anchor="middle" font-weight="600">Orquestador</text>
+  <text class="muted" x="90" y="65" text-anchor="middle" font-size="11">una task tras otra</text>
+
+  <rect class="node-ok" x="220" y="20" width="200" height="62" rx="8"/>
+  <text x="320" y="46" text-anchor="middle" font-weight="600">Task 0 · motor nuevo</text>
+  <text class="muted" x="320" y="65" text-anchor="middle" font-size="11">corre, guarda, se cierra</text>
+
+  <rect class="node-ok" x="470" y="20" width="200" height="62" rx="8"/>
+  <text x="570" y="46" text-anchor="middle" font-weight="600">Task 1 · motor nuevo</text>
+  <text class="muted" x="570" y="65" text-anchor="middle" font-size="11">corre, guarda, se cierra</text>
+
+  <rect class="node" x="720" y="20" width="170" height="62" rx="8"/>
+  <text x="805" y="46" text-anchor="middle" font-weight="600">… hasta la última</text>
+  <text class="muted" x="805" y="65" text-anchor="middle" font-size="11">o hasta un fallo</text>
+
+  <line class="arrow" x1="170" y1="51" x2="218" y2="51" marker-end="url(#arr)"/>
+  <line class="arrow" x1="420" y1="51" x2="468" y2="51" marker-end="url(#arr)"/>
+  <line class="arrow" x1="670" y1="51" x2="718" y2="51" marker-end="url(#arr)"/>
+
+  <rect class="node" x="220" y="130" width="450" height="96" rx="8"/>
+  <text x="445" y="154" text-anchor="middle" font-weight="600">Dentro de cada task (el driver)</text>
+  <text class="muted" x="445" y="176" text-anchor="middle" font-size="12">arranca el motor → espera a que carguen los bancos → arranca la task</text>
+  <text class="muted" x="445" y="195" text-anchor="middle" font-size="12">cada 15 min: estado + guardado de los bancos a disco · vigilante de RAM</text>
+  <text class="muted" x="445" y="214" text-anchor="middle" font-size="12">al acabar: guardado final confirmado → cierra el motor</text>
+  <line class="arrow" x1="320" y1="82" x2="320" y2="128" marker-end="url(#arr)"/>
+
+  <rect class="node-stop" x="720" y="130" width="170" height="96" rx="8"/>
+  <text x="805" y="154" text-anchor="middle" font-weight="600">Stop &amp; persist</text>
+  <text class="muted" x="805" y="176" text-anchor="middle" font-size="12">para la task en curso</text>
+  <text class="muted" x="805" y="195" text-anchor="middle" font-size="12">el driver guarda</text>
+  <text class="muted" x="805" y="214" text-anchor="middle" font-size="12">no se lanza ninguna más</text>
+  <line class="arrow" x1="718" y1="178" x2="672" y2="178" marker-end="url(#arr)"/>
+</svg>
+<div class="figcap">Un motor nuevo por task. El guardado se confirma antes de cerrar cada motor.</div>
+</div>
+
+<h3>El guardado, paso a paso</h3>
+<p>Sin un guardado explícito, las estrategias que genera el motor viven solo en su memoria: si el motor
+muere, se pierden. Por eso el driver guarda los databanks a disco en cada sondeo y, al final de la task,
+hace un guardado final que <b>confirma</b> en el log del motor antes de cerrarlo:</p>
+<ul>
+  <li>Si el motor escribe la línea <code>Databank '&lt;proyecto&gt;/&lt;banco&gt;' saved …</code>, el guardado está
+      confirmado. El driver comprueba además que en disco haya tantos <code>.sqx</code> como dice esa línea.</li>
+  <li>Si no había nada nuevo que guardar, el motor no escribe ninguna línea. Entonces el driver compara las
+      estrategias del motor con los <code>.sqx</code> en disco: si coinciden, lo da por guardado.</li>
+  <li>Si no puede confirmarlo, <b>deja el motor vivo</b> para no perder nada, marca la task como fallida y el
+      pipeline se detiene. <code>stop_and_persist.py</code> reintenta el guardado.</li>
+</ul>
+
+<h3>La parada</h3>
+<p><code>stop_and_persist.py</code> (o el botón del monitor) deja una marca de parada en la carpeta del proyecto y
+pide al motor que pare la task en curso. El driver de esa task guarda y cierra el motor, y el orquestador, al
+ver la marca, no lanza la siguiente: sale con código 3 y te dice en su log desde qué task reanudar. Si no hay
+pipeline (un motor suelto), el propio <code>stop_and_persist.py</code> para el proyecto, guarda y cierra el motor.</p>
+
+<h2 id="reglas">7. Reglas que no hay que saltarse</h2>
+
+<div class="box corrige"><span class="tag">Nunca</span>
+<ul>
+  <li><b>Abrir la GUI con un motor vivo.</b> GUI y motor no pueden convivir: abrir la GUI encima de un motor
+      <b>corrompe databanks</b> (caso real: un banco pasó de 4.000 a 136 estrategias).</li>
+  <li><b>Matar <code>sqcli</code> a mano sin guardar antes.</b> Lo que no esté en disco se pierde. Usa
+      Stop &amp; persist.</li>
+</ul>
+</div>
+
+<ul>
+  <li><b>Ningún motor vivo antes de lanzar</b>: <code>pgrep -x sqcli</code> no debe devolver nada. Si encuentra un
+      motor de otra corrida, el lanzamiento espera 2 minutos y aborta diciéndote cómo pararlo; nunca lo mata.</li>
+  <li><b>Databanks sin espacios en el nombre</b> (los que crees tú). Los bancos con espacios no se pueden
+      guardar por HTTP.</li>
+  <li><b>Mac despierto, enchufado y con la tapa abierta.</b> Si el Mac se duerme, el motor se congela o muere.
+      <code>caffeinate -i</code> evita el reposo por inactividad, pero no el de cerrar la tapa.</li>
+</ul>
+
+<h2 id="problemas">8. Si algo va mal</h2>
+
+<div class="table-wrap"><table>
+<tr><th>Lo que ves</th><th>Qué hacer</th></tr>
+<tr><td><code>ABORT: ya hay un sqcli corriendo</code> o <code>hay un motor sqcli que no es de esta cadena</code></td>
+    <td>Queda un motor vivo de otra corrida. Si no hay nada tuyo en marcha: <code>python sqx/stop_and_persist.py &lt;proyecto&gt;</code> y relanza con el índice que indique el mensaje.</td></tr>
+<tr><td><code>sync de &lt;banco&gt; NO confirmado: dejo el motor vivo</code></td>
+    <td>El guardado final no se pudo confirmar y el motor sigue vivo a propósito; la task queda fallida y el pipeline se detiene. Ejecuta <code>python sqx/stop_and_persist.py &lt;proyecto&gt;</code> y revisa los <code>.sqx</code> en <code>…/user/projects/&lt;proyecto&gt;/databanks/&lt;banco&gt;/</code>. No abras la GUI ni mates <code>sqcli</code> antes.</td></tr>
+<tr><td>El Mac se durmió durante la corrida</td>
+    <td>Lo guardado es lo del último sondeo (cada 15 min). Al despertar, pulsa <b>Actualizar</b> en el monitor: si el motor murió, el pipeline aborta e indica el índice desde el que reanudar.</td></tr>
+<tr><td>El pipeline abortó con un índice</td>
+    <td>El índice está en la última línea <code>ABORT … Reanuda:</code> del log de lanzamiento. La causa, en <code>sqx/output/&lt;proyecto&gt;_state.json</code>. Relanza con ese índice.</td></tr>
+<tr><td>Una task "termina" en segundos con 0 estrategias</td>
+    <td>Su databank de entrada estaba vacío o no está declarado en el proyecto (<code>docs/persistencia-databanks.md</code>).</td></tr>
+<tr><td>El monitor avisa de <b>Restore pendiente</b></td>
+    <td>Un lanzamiento murió a mitad y el <code>.cfx</code> puede tener tasks desactivadas. Pulsa <i>Restaurar .cfx original</i>.</td></tr>
+<tr><td>El motor no responde pero sigue vivo</td>
+    <td>Mira su CPU varias veces: <code>ps -o pid,%cpu,etime -p "$(pgrep -x sqcli)"</code>. CPU alta = está trabajando, espera. CPU por debajo del 5 % sostenida = colgado. Con un pipeline en marcha, deja que el driver lo resuelva.</td></tr>
+<tr><td>La GUI tarda mucho en abrir o se congela</td>
+    <td>Demasiadas estrategias en los bancos: <code>python sqx/gui_slim.py &lt;proyecto&gt; archive --banks A,B</code> los aparta (no borra) y <code>restore</code> los devuelve.</td></tr>
+</table></div>
+
+<h2 id="ia">9. Usarlo con una IA</h2>
+
+<p>El repo trae <code>AGENTS.md</code> (y <code>CLAUDE.md</code>, que lo importa) con las reglas de operación y las
+trampas conocidas. Abre la carpeta en Claude Code, Codex, Cursor o similar y la IA las cargará sola. Por ejemplo:</p>
+<ul>
+  <li><i>"Lista las tasks de MiProyecto y lánzalo desde la 3 con --slim, con el Mac despierto."</i></li>
+  <li><i>"El pipeline de MiProyecto ha abortado: mira los logs y dime desde dónde reanudar."</i></li>
+  <li><i>"Para MiProyecto y deja los databanks listos para abrir la GUI."</i></li>
+</ul>
+<p>La IA debe pedirte confirmación antes de parar o matar procesos, mover bancos o editar un <code>.cfx</code>.</p>
+
+<h2 id="glosario">10. Glosario</h2>
+
+<div class="table-wrap"><table>
+<tr><th>Término</th><th>Qué es</th></tr>
+<tr><td>Motor, <code>sqcli</code></td><td>SQX sin ventana. Lo arranca el driver y se maneja por HTTP en el puerto 5050.</td></tr>
+<tr><td>Task</td><td>Cada paso de un custom project: un Build, un Retest, un filtro…</td></tr>
+<tr><td>Databank, banco</td><td>Donde SQX guarda estrategias. En disco, una carpeta con un <code>.sqx</code> por estrategia (normalmente).</td></tr>
+<tr><td>Orquestador</td><td>El script que recorre las tasks del proyecto y lanza cada una con un motor nuevo (<code>run_pipeline_per_task.sh</code>).</td></tr>
+<tr><td>Driver</td><td>El script que lleva una task: arranca el motor, sondea, guarda y lo cierra (<code>run_pipeline_headless.sh</code>).</td></tr>
+<tr><td>Guardar, persistir, sync</td><td>Escribir a disco los databanks que el motor tiene en memoria (<code>synctofiles</code>).</td></tr>
+<tr><td><code>--slim</code></td><td>Modo que aparta mientras corre cada task los bancos que esa task no usa, para gastar menos RAM.</td></tr>
+<tr><td>Stop &amp; persist</td><td>Parar guardando: el botón del monitor o <code>stop_and_persist.py</code>.</td></tr>
+<tr><td>Sondeo</td><td>Cada vez que el driver mira el estado de la task (cada 15 min) y guarda los databanks.</td></tr>
+<tr><td>Bancos apartados, Restore pendiente</td><td><code>--slim</code> mueve bancos fuera del proyecto y el lanzamiento desactiva tasks en el <code>.cfx</code> mientras corre; si algo muere a medias, quedan sin devolver. El <code>.cfx</code> se restaura con el botón <i>Restaurar .cfx original</i> del monitor; los bancos, con <code>python sqx/bank_plan.py &lt;proyecto&gt; --reconcile</code> o al relanzar.</td></tr>
+<tr><td>Vigilante de RAM</td><td>Proceso del driver que mide la memoria del motor y lo para si pasa del umbral.</td></tr>
+</table></div>
+
+<p class="footer">Guía de la copia <code>sqx-headless</code> · probada con SQX build 144 (Apple Silicon) · 2026-10-27.
+Si algo no cuadra con lo que ves, avisa a quien te pasó el repo.</p>
+
+</main>
+</body>
+</html>

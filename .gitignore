@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.DS_Store
+# Salida de las corridas (logs, telemetría, estado): es tuya, no del repo.
+sqx/output/

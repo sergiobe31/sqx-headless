@@ -1,0 +1,7 @@
+streamlit==1.59.2
+pandas==3.0.2
+altair==6.0.0
+# Servidor de Streamlit fijado a las versiones probadas: con starlette 1.9 / uvicorn 0.54 (lo que
+# pip elige sin fijar, 2026-10-21) Streamlit 1.59.2 da errores 500 al servir sus ficheros estáticos.
+starlette==0.52.1
+uvicorn==0.41.0
