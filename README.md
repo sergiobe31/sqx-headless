@@ -2,6 +2,10 @@
 
 Lanza, vigila y para proyectos de **StrategyQuant X** (custom projects) **sin abrir la GUI**, en macOS.
 
+> **English:** run, monitor and stop StrategyQuant X custom projects headless on macOS, with a fresh
+> `sqcli` engine per task, a browser monitor and a safe "stop & persist". The docs are in Spanish;
+> issues and pull requests in English are welcome. Unofficial tool, not affiliated with StrategyQuant.
+
 - **Pipelines largos sin quedarse sin memoria.** Un proyecto con Build → Retests → Filtros se ejecuta
   task a task, con un motor de SQX nuevo para cada una. Con un único motor, la RAM se acumula
   hasta que el Mac colapsa.
@@ -24,15 +28,17 @@ Los proyectos se siguen creando y configurando en la GUI de SQX. Esto solo los e
 **Guía paso a paso con capturas**: `open docs/guia.html` (se abre en el navegador; GitHub muestra el
 código de la página, no la página).
 
-> Copia generada a partir de un repo privado (el commit lleva la línea `Exported-From`). Si algo
-> falla o echas algo en falta, avisa a quien te la pasó en vez de arreglarlo aquí: la siguiente
-> exportación sustituye todo el contenido.
+> **Herramienta no oficial**, sin relación con StrategyQuant s.r.o. (StrategyQuant X es marca suya).
+> Necesitas tu propia licencia de SQX: este repo no incluye ni modifica SQX, solo usa su motor de
+> línea de comandos (`sqcli`) y su API HTTP. **Úsalo bajo tu responsabilidad** (licencia MIT, sin
+> garantía): los scripts paran procesos de SQX, desactivan tasks del `.cfx` mientras corren (con
+> copia y restauración) y pueden apartar databanks (los mueven, no los borran). Prueba primero con
+> un proyecto clonado.
 
 ## Requisitos
 
 - **macOS** (probado en Apple Silicon con SQX **build 144**). No funciona en Windows.
-- **Acceso a este repo** (privado: te lo da quien te lo pasó) y **git** (si no lo tienes,
-  `xcode-select --install`).
+- **git** (si no lo tienes, `xcode-select --install`).
 - **StrategyQuant X** instalado en `/Applications` o `~/Applications`, con la licencia activa. El
   motor de línea de comandos (`sqcli`) viene dentro de la app.
 - **Python 3.11**: `brew install python@3.11` o el instalador de python.org.
@@ -260,6 +266,17 @@ La IA debe pedirte confirmación antes de parar o matar procesos, mover bancos o
 | `docs/persistencia-databanks.md` | Guardar, sincronizar y exportar databanks; bancos que "desaparecen" |
 | `docs/cascadas.md` | Varios proyectos seguidos; corridas desatendidas |
 | `docs/version-b144.md` | Diferencias entre B143 y B144 |
+
+## Contribuir
+
+Los fallos, como issue (con macOS, build de SQX y logs; nunca estrategias). Los PRs son bienvenidos
+y se revisan aquí. Este repo es el espejo público de un repo de trabajo privado: los cambios
+aceptados se integran también allí para que la siguiente instantánea no los pise. Detalles, y lo
+que implicaría una versión para Windows, en [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Licencia
+
+[MIT](LICENSE). Herramienta no oficial, sin relación con StrategyQuant s.r.o.
 
 ## Tests
 

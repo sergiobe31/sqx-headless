@@ -125,13 +125,8 @@ FITNESS_GOALS = (
     "InitialDeposit",
 )
 
-# Fitness canónica de producción (goals activos, confirmado Sergio 2026-09-09).
-# (type, weight, valueType) — ver docs/referencia/fitness_goals_catalogo.md §configs canónicas.
-FITNESS_CANONICAL_TF = (
-    ("ReturnDDRatio", "10", "1"), ("Stability", "5", "1"), ("SQNScore", "5", "1"),
-    ("ProfitableMonthsPct", "5", "1"), ("StagnationPct", "5", "2"),
-)
-FITNESS_CANONICAL_MR = FITNESS_CANONICAL_TF + (("Exposure", "5", "2"),)
+# La fitness la configura cada usuario en su proyecto de SQX: este módulo solo la LEE (no impone ninguna).
+# Las configs de producción propias viven en docs/referencia/fitness_goals_catalogo.md §configs canónicas.
 
 
 def fitness_goals(root):

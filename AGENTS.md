@@ -11,9 +11,10 @@ Los proyectos los crea y configura el usuario en la GUI de SQX. Este repo **no**
 configuraciones de build (la excepción es `retry_project.py build`, que crea un proyecto
 `<proy>_retry` para repetir pruebas), y no funciona en Windows.
 
-Es una **copia generada** desde un repo privado: no propongas cambios al código como si fueran a
-integrarse. Si encuentras un fallo, descríbelo al usuario (fichero, línea, síntoma) para que lo
-reenvíe.
+Es el **espejo público** de un repo de trabajo privado: las actualizaciones llegan como
+instantáneas y los PRs se revisan aquí (proceso en `CONTRIBUTING.md`). Si encuentras un fallo,
+ayuda al usuario a abrir un issue o a preparar un PR pequeño siguiendo `CONTRIBUTING.md`; no
+reorganices el repo por tu cuenta. Herramienta no oficial, sin relación con StrategyQuant s.r.o.
 
 Probado con SQX **build 144** (Apple Silicon). Con otras versiones, revisa `docs/version-b144.md`.
 

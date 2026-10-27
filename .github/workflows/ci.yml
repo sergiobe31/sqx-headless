@@ -10,7 +10,7 @@ jobs:
     name: Tests (Python 3.11, macOS)
     runs-on: macos-latest
     # La suite tarda ~26 min en el runner de macOS (2026-10-26). Tope para que un test colgado no consuma horas
-    # de minutos de macOS (en repos privados cuentan x10).
+    # de minutos de macOS.
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
