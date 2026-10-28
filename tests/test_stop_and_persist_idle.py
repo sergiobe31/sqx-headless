@@ -118,6 +118,28 @@ def test_a10_si_la_lista_no_responde_no_se_suman_esperas_por_banco(monkeypatch):
     assert calls == [("-databank action=list project=X", 6)]
 
 
+def test_a11_subshell_que_termino_no_es_un_driver_raiz(monkeypatch):
+    """A11 (2026-10-27): un `$(…)` del driver que muere entre el pgrep y el `ps` da ppid 0; antes contaba como raíz
+    nueva y recibía un segundo stop (`test_f2d` inestable con carga). Un huérfano real (ppid 1) sí es raíz."""
+    ppids = {100: 1, 101: 100, 102: 0, 103: 0, 200: 1}   # 100 driver; 101 su subshell; 102 ya muerto; 200 otro driver
+    monkeypatch.setattr(sp, "_ppid", lambda pid: ppids.get(pid, 0))
+    monkeypatch.setattr(sp, "_pid_exists", lambda pid: pid != 102)   # 103: vivo, pero `ps` no dio su ppid
+    assert sp._driver_roots([100, 101, 102]) == [100]
+    assert sp._driver_roots([100, 101, 102, 200]) == [100, 200]
+    # CR6-A1: ppid 0 con el proceso vivo (falló `ps`) → raíz, como antes: un stop de más es inocuo, uno de menos no
+    assert sp._driver_roots([100, 103]) == [100, 103]
+    # el ppid de cada pid se lee una vez: si el proceso muere entre dos lecturas, no se reabre la carrera
+    reads = []
+    vivos = {101: 100}
+
+    def ppid_que_muere(pid):
+        reads.append(pid)
+        return vivos.pop(pid, 1 if pid == 100 else 0)
+    monkeypatch.setattr(sp, "_ppid", ppid_que_muere)
+    assert sp._driver_roots([101, 100]) == [100]
+    assert reads.count(101) == 1
+
+
 def test_a9_entrega_del_stop_al_pipeline_una_sola_orden(monkeypatch):
     _patch(monkeypatch, RUNNING)
     sent = []
@@ -184,6 +206,8 @@ def harness(monkeypatch, tmp_path):
     monkeypatch.setattr(sp, "engine_pids", lambda: [])
     monkeypatch.setattr(sp, "gui_pids", lambda: [])          # pre_gui_check (veredicto de la GUI) es global
     monkeypatch.setattr(sp, "cascade_pids", lambda: [])
+    # A11: un driver simulado está VIVO (tiene padre); sin esto `_ppid` lanzaba el `ps` real sobre un pid inventado
+    monkeypatch.setattr(sp, "_ppid", lambda pid: 1)
     monkeypatch.setattr(sp, "kill_engine", fake_kill)
     return h
 
@@ -354,6 +378,8 @@ def world(monkeypatch, tmp_path):
     monkeypatch.setattr(sp, "kill_engine", lambda pids=None, grace=None: w.kills.append(pids) or True)
     monkeypatch.setattr(sp, "gui_pids", lambda: [])
     monkeypatch.setattr(sp, "cascade_pids", lambda: [])
+    # A11: los drivers simulados están VIVOS (tienen padre); sin esto `_ppid` lanzaba el `ps` real sobre pids inventados
+    monkeypatch.setattr(sp, "_ppid", lambda pid: 1)
 
     def stop_graceful(*a, **k):
         w.stop_graceful_called += 1

@@ -82,8 +82,6 @@ METRICS = {
     "ReturnDDRatio": "Ret/DD Ratio", "SharpeRatio": "Sharpe Ratio", "ProfitFactor": "Profit factor",
     "Stability": "Stability", "Symmetry": "Symmetry",
 }
-# sampleType: 10=IS, 20=OOS, 127=SampleTypes.FullSample (IS+OOS; también el lado derecho "main" de
-# condiciones relativas % del original). Verificado en SQTradingLib B144, 2026-10-12.
 
 # Catálogo de goals de la fitness Weighted (B143). Extraído de un .cfx vivo escrito por la
 # GUI el 2026-09-14 (eurusd_h2_exp_lados_separados); las fixtures viejas de sqx/bases/ solo

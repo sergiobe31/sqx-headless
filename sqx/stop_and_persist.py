@@ -635,8 +635,19 @@ def _finish(report: dict, proj: str) -> dict:
     return report
 
 
-def _has_ancestor_in(pid: int, pool: set[int], max_depth: int = 8) -> bool:
-    cur = _ppid(pid)
+def _pid_exists(pid: int) -> bool:
+    """¿Existe el proceso (zombis incluidos)? Sin `ps`: sirve para distinguir "ya no existe" de "falló `ps`"."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _has_ancestor_in(pid: int, pool: set[int], max_depth: int = 8, ppid: int | None = None) -> bool:
+    cur = _ppid(pid) if ppid is None else ppid
     for _ in range(max_depth):
         if cur <= 1:
             return False
@@ -648,9 +659,21 @@ def _has_ancestor_in(pid: int, pool: set[int], max_depth: int = 8) -> bool:
 
 def _driver_roots(pids: list[int]) -> list[int]:
     """`driver_pids` también devuelve los subshells del driver (el vigilante de RAM y los `$(…)` comparten su
-    cmdline). Driver "raíz" = el que no desciende de otro de la lista: la unidad a la que se entrega el stop."""
+    cmdline). Driver "raíz" = el que no desciende de otro de la lista: la unidad a la que se entrega el stop.
+
+    A11 (2026-10-27, `test_f2d` inestable con la máquina cargada): un `$(…)` que termina entre el `pgrep` y esta
+    consulta da ppid 0 y contaba como driver raíz NUEVO, que recibía un segundo `stop`. Un pid que ya no existe
+    no es destino de nada: se descarta. El ppid se lee una sola vez para no reabrir la misma carrera. Si el ppid
+    sale 0 pero el proceso existe (falló `ps`, CR6-A1), cuenta como raíz: un stop de más es inocuo, uno de menos no."""
     pool = set(pids)
-    return [p for p in pids if not _has_ancestor_in(p, pool)]
+    roots = []
+    for p in pids:
+        pp = _ppid(p)
+        if pp == 0 and not _pid_exists(p):    # ya no existe
+            continue
+        if not _has_ancestor_in(p, pool, ppid=pp):
+            roots.append(p)
+    return roots
 
 
 def _deliver_stop(proj: str, port: int, report: dict) -> bool:

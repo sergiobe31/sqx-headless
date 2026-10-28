@@ -14,7 +14,9 @@ Lanza, vigila y para proyectos de **StrategyQuant X** (custom projects) **sin ab
 - **Parar sin perder estrategias.** Los databanks se guardan a disco antes de matar el motor, y el
   proyecto queda listo para abrirlo en la GUI.
 
-Los proyectos se siguen creando y configurando en la GUI de SQX. Esto solo los ejecuta.
+Los proyectos se siguen creando en la GUI de SQX. Esto los ejecuta y, si hace falta, cambia sin abrir la
+GUI las fechas de cada task, el rango OOS, la fitness y el máximo de estrategias y la parada del Build
+(ver *Cambiar la configuración de un proyecto*).
 
 ## Empieza aquí
 
@@ -220,12 +222,40 @@ disco y sale con código 0 si es seguro abrir la GUI, o 1 con los motivos.
 - El driver solo dice "Ya puedes abrir la GUI" en una task suelta y cuando de verdad es seguro; a
   mitad de pipeline nunca.
 
+## Cambiar la configuración de un proyecto
+
+`sqx/cfx_edit.py` cambia cuatro ajustes de un proyecto que ya existe, sin abrir la GUI:
+
+| Ajuste | Opción | En qué tasks |
+| --- | --- | --- |
+| Ventana de test (Start/End) | `--dates 2015.01.01:2023.12.31` | Las que tienen ventana (Build y Retest) |
+| Rango fuera de muestra (OOS) | `--oos 2021.01.01:2023.12.31`, `--oos-last-pct 30` (el último 30 %) o `--oos none` | Las mismas |
+| Fitness | Weighted: `--goal ReturnDDRatio=10 --goal ProfitFactor=5 --goals-only`; simple: `--fitness ProfitFactor` | Build |
+| Máximo de estrategias y parada | `--max-strategies 1000`; `--stop time-limit:0:2:0` (días:horas:minutos), `passed-count:500`, `databank-full` o `never` | Build |
+
+```bash
+python sqx/cfx_edit.py MiProyecto show          # qué tiene ahora cada task
+python sqx/cfx_edit.py MiProyecto set --task 0 --dates 2015.01.01:2023.12.31 --oos-last-pct 30
+#   simulación: enseña "antes → después" y no escribe nada
+python sqx/cfx_edit.py MiProyecto set --task 0 --dates 2015.01.01:2023.12.31 --oos-last-pct 30 --apply
+```
+
+- Necesita SQX y la GUI cerrados; si no, se niega.
+- Con `--apply` guarda antes una copia `project.cfx.bak_<motivo>_<fecha>` en la carpeta del proyecto y,
+  después, comprueba cada valor escrito. Si algo no cuadra, el original queda como estaba.
+- `--task` acepta el índice de `--list`, el título de la task o el nombre de su fichero. Se puede repetir
+  para aplicar lo mismo a varias tasks.
+- No amplía la ventana más allá de los datos enlazados a la task (el *binding* que muestra `show`): eso
+  se hace en la GUI. Tampoco toca símbolos, costes, bloques ni condiciones de aceptación.
+- Límites y reglas completas: `python sqx/cfx_edit.py -h`.
+
 ## Otras herramientas
 
 | Comando | Para qué |
 | --- | --- |
 | `python sqx/gui_slim.py <proy> archive --banks A,B` / `restore` / `status` | Apartar bancos pesados para que la GUI abra rápido (los mueve, no borra) |
 | `python sqx/show_reject_breakdown.py <proy>` | Por qué se rechazaron las estrategias del último Build |
+| `python sqx/cfx_edit.py <proy> show` / `set …` | Ver y cambiar fechas, OOS, fitness, máximo de estrategias y parada (ver arriba) |
 | `python sqx/inspect_build_tasks.py <proy>` | Qué configura cada Build task del proyecto |
 | `python sqx/pass_matrix.py --dir sqx/output/<proy>_<fecha>` | Matriz estrategia × prueba (PASSED/FAILED) a partir de los CSV |
 | `python sqx/retry_project.py plan\|build\|export\|merge …` | Volver a pasar solo las pruebas que faltan en la matriz |
@@ -252,8 +282,11 @@ de peticiones:
 - *"Lista las tasks de MiProyecto y lánzalo desde la 3 con `--slim`, con el Mac despierto."*
 - *"El pipeline de MiProyecto ha abortado: mira los logs y dime desde dónde reanudar."*
 - *"Para MiProyecto y deja los databanks listos para abrir la GUI."*
+- *"En el Build de MiProyecto pon de 2015 a 2023, con el último 30 % fuera de muestra."*
 
 La IA debe pedirte confirmación antes de parar o matar procesos, mover bancos o editar un `.cfx`.
+Para cambiar la configuración usa `cfx_edit.py`: primero te enseña la simulación y solo la aplica con
+tu OK.
 
 ## Documentación
 

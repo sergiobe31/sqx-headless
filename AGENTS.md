@@ -7,9 +7,12 @@ del usuario. También valen como referencia rápida para personas; la guía de u
 
 Stack para **ejecutar, vigilar, parar y guardar** custom projects de StrategyQuant X (SQX) sin la
 GUI, en macOS, a través de su motor de línea de comandos `sqcli` (servidor HTTP en el puerto 5050).
-Los proyectos los crea y configura el usuario en la GUI de SQX. Este repo **no** crea ni edita
-configuraciones de build (la excepción es `retry_project.py build`, que crea un proyecto
-`<proy>_retry` para repetir pruebas), y no funciona en Windows.
+Los proyectos los crea el usuario en la GUI de SQX. Este repo no crea proyectos (la excepción es
+`retry_project.py build`, que crea `<proy>_retry` para repetir pruebas), pero sí cambia cuatro ajustes de
+un proyecto que ya existe, con `sqx/cfx_edit.py`: la ventana de test de cada task, el rango OOS, la
+fitness de un Build (goals y pesos de la Weighted, o una fitness simple) y el máximo de estrategias y la
+condición de parada de un Build. Todo lo demás (símbolos, costes, bloques, condiciones de aceptación) se
+configura en la GUI. No funciona en Windows.
 
 Es el **espejo público** de un repo de trabajo privado: las actualizaciones llegan como
 instantáneas y los PRs se revisan aquí (proceso en `CONTRIBUTING.md`). Si encuentras un fallo,
@@ -23,6 +26,12 @@ Probado con SQX **build 144** (Apple Silicon). Con otras versiones, revisa `docs
 - **Pide confirmación antes de**: parar o matar procesos (`sqcli`, drivers, la GUI), mover o
   archivar databanks (`gui_slim.py`), restaurar o editar un `project.cfx`, borrar cualquier cosa
   dentro de `user/projects/`, o lanzar algo que vaya a durar horas.
+- **Para cambiar la configuración de un proyecto usa `sqx/cfx_edit.py`; nunca edites el `.cfx` a mano.**
+  Lanza primero la simulación (sin `--apply`), enseña al usuario el `antes → después` y los avisos, espera
+  su OK y solo entonces repite el mismo comando con `--apply`. SQX y la GUI tienen que estar cerrados (la
+  herramienta se niega si no). No puede ver qué datos tiene descargados SQX y nunca cambia el enlace de
+  datos del símbolo (binding): si rechaza una ventana porque se sale de él, el usuario amplía las fechas
+  en la GUI.
 - **Nunca** abras la GUI de SQX, ni le digas al usuario que la abra, mientras haya un `sqcli` vivo.
 - **Nunca** borres databanks con `rm`. Para apartar bancos usa `gui_slim.py`, que los mueve y es
   reversible.
@@ -62,12 +71,17 @@ tiene que fijar `SQX_APP`.
 | `sqx/gui_slim.py` | Archiva y restaura bancos pesados en `<proj>/databanks_archive/`, con manifiesto. |
 | `sqx/pass_matrix.py`, `sqx/retry_project.py` | Matriz estrategia × prueba y repetición solo de las pruebas que faltan. |
 | `sqx/sqx_monitor.py`, `sqx/snapshot_loop.py` | Monitor Streamlit y auto-muestreo (`~/.sqx_monitor/`). |
+| `sqx/cfx_edit.py` | Ver (`show`) y cambiar (`set`) la configuración de un proyecto: ventana de cada task, OOS, fitness, máximo de estrategias y parada de un Build. Sin `--apply` solo simula; con `--apply` hace la copia `project.cfx.bak_<motivo>_<fecha>`, escribe, comprueba cada valor y aborta si algo no cuadra. Se niega con SQX abierto. Límites y reglas: `python sqx/cfx_edit.py -h`. |
 | `sqx/inspect_build_tasks.py`, `sqx/show_reject_breakdown.py` | Qué configura cada Build task; desglose de rechazos del `global_log`. |
 | `sqx/paths.py`, `sqx/paths.sh` | Única fuente de las rutas de SQX. |
 | `sqx/builder_registry.py` | Esquema concepto → XML del Builder (lo usan el monitor y el inspector). |
 
 ## Runbook
 
+0. Si hay que ajustar fechas, OOS, fitness, máximo o parada: `python sqx/cfx_edit.py <proy> show`, después
+   `python sqx/cfx_edit.py <proy> set --task <índice> <cambios>` (simulación), OK del usuario y el mismo
+   comando con `--apply`. Por ejemplo: `--dates 2015.01.01:2023.12.31 --oos-last-pct 30`,
+   `--goal ProfitFactor=10 --goals-only`, `--max-strategies 1000 --stop time-limit:0:2:0`.
 1. Antes de lanzar: GUI cerrada, `pgrep -x sqcli` vacío y puerto 5050 libre.
 2. Pipeline completo o desde una task:
    `nohup caffeinate -i bash sqx/run_pipeline_per_task.sh <proy> [from_task_idx] [--slim] > sqx/output/<proy>_launch.log 2>&1 &`.
@@ -214,7 +228,8 @@ vivo aunque se cierre Streamlit; se para desde el botón o por PID.
 ## Documentación (leer bajo demanda)
 
 - `docs/sqx_cli_commands.md`: referencia de `sqcli`, anatomía del `.cfx`, guardado (§6.1-6.2),
-  Build headless (§9) y resumen de trampas (§13). El código cita sus secciones.
+  Build headless (§9), resumen de trampas (§13) y rangos de fechas por task (§14, lo que edita
+  `cfx_edit.py`). El código cita sus secciones.
 - `docs/memoria-heap.md`: OOM, swap, GC, motor zombi; dimensionar el heap; `--slim` y vigilante.
 - `docs/persistencia-databanks.md`: retest masivo, carga lazy, sync y export, bancos no declarados,
   repetir solo lo ausente, `gui_slim`.

@@ -466,7 +466,7 @@ guardado por la GUI. Todo vive dentro de `<Rankings>` (hijo de `<Settings>`) sal
   **`<AutomaticDismissal>`** con hijos `<Problem code="N" dismiss="true|false"/>`. **Son flags numéricos
   (bitmask), NO texto** → un `grep "ambiguous"` sobre el `.cfx` **no los encuentra** (susto real: parecían
   no persistirse). Cada filtro = un `code`; `dismiss="true"` lo activa. En el D1 MR hay 2 activos (`code=1`
-  y `code=1024` = los dos encendidos en la configuración de referencia). El mapeo code→etiqueta está compilado en el `.jar`.
+  y `code=1024` = los dos encendidos en la configuración de referencia). El `.cfx` solo guarda el número: la etiqueta de cada `code` es la que enseña la GUI.
 - **Dedup** = `<DismissTooSimilarStrategies>true</DismissTooSimilarStrategies>` (separado del AutomaticDismissal).
 - **Restart del genético** (dentro de `<BuildMode>`, dos toggles independientes):
   - `<EvoRestartOnFinish status="false"/>` = *"Start again when finished (continuous repeating evolution)"*.
@@ -756,12 +756,15 @@ settings*):
 Builder por etapa; o headless: mutar el 1er `<Setup>` de cada task-XML + el `<OutOfSample>` del build).
 No existe comando `sqcli` para esto (§14.5); es mutación del `.cfx`.
 
-### 14.5 Inyectar fechas por task (headless = mutar el `.cfx`) 🟡
-Cirugía regex sobre el ZIP, reescribiendo `dateFrom`/`dateTo` (el script que lo hace no está incluido en
-esta copia):
-- Por task-XML: `re.subn` sobre el **1er** `<Setup dateFrom="…" dateTo="…">` (count=1) → ventana del test.
-- En `Build-Task*.xml` además: reescribir el bloque `<OutOfSample>…</OutOfSample>` (split IS/OS).
-- **No tocar** el binding del `<Symbol>` (epoch ms) si ya cubre todo el dato disponible.
+### 14.5 Inyectar fechas por task (headless = mutar el `.cfx`) ✅
+**Herramienta: `sqx/cfx_edit.py`** (2026-10-27). Cambia la ventana de cada task, el rango OOS, la fitness
+de un Build, el máximo de estrategias y la condición de parada; simula por defecto, y con `--apply` hace
+copia de seguridad, comprueba cada valor escrito y aborta si algo no cuadra (`python sqx/cfx_edit.py -h`).
+Lo que hace por dentro:
+- Por task-XML: reescribe `dateFrom`/`dateTo` del **1er** `<Setup>` de `<Data><Setups>` → ventana del test.
+- Reescribe el bloque `<OutOfSample>…</OutOfSample>` (split IS/OS); existe en Build y en Retest.
+- **No toca** el binding del `<Symbol>` (epoch ms): si la ventana nueva se sale de él, se niega y pide
+  ampliar las fechas en la GUI.
 - ⚠ GUI cerrada obligatoria al mutar (igual que §9.3); dejar el proyecto **resuelto** para que al
   reabrir no se dispare el reset-por-GUI.
 
